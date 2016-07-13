@@ -1,5 +1,5 @@
-#ifndef SCHEME_HH
-#define SCHEME_HH
+#ifndef USCHEME_HH
+#define USCHEME_HH
 
 #include <cctype>
 #include <limits>
@@ -11,15 +11,11 @@ using namespace std;
 
 class usVisitor;
 
-class usNil;
-
-usNil* nil;
-
 // ======================================================================
 
 class usObj {
 public:
-  virtual ~usObj() = 0;
+  virtual ~usObj() {}
   virtual void accept( usVisitor* ) = 0;
   short gcMark;
   friend class usVisitor;
@@ -63,6 +59,10 @@ public:
 
   void accept( usVisitor* v );
 
+  string getName() {
+    return name;
+  }
+
 protected:
   string name;
 };
@@ -74,6 +74,10 @@ public:
   usInteger( int i  ) : value( i ) {}
 
   void accept( usVisitor* v );
+
+  int getValue() {
+    return value;
+  }
 
 protected:
   int value;
@@ -94,89 +98,14 @@ public:
   }
 };
 
+extern usNil* nil;
+
 // ======================================================================
 
+void init();
+
 usObj* read( istream& );
-
-usSymbol* readSymbol( istream& input ) {
-  // A symbol ends at a white-space, ')', or '.'
-  string symbol;
-
-  while( !isspace( input.peek() ) && input.peek() != ')' && input.peek() != '.' ) {
-    symbol.append( 1, input.get() );
-  }
-
-  return new usSymbol( symbol );
-}
-
-// ----------------------------------------------------------------------
-
-usObj* readSequence( istream& input ) {
-  // read the list inside parens
-  ws( input );
-  while( input && input.peek() != ')' ) {
-    usObj* first = read( input );
-    usObj* second = readSequence( input );
-    if( second ) {
-      return new usCons( first, second );
-    }
-    else {
-      return first;
-    }
-  }
-  return nil;
-}
-
-// ----------------------------------------------------------------------
-
-// Read one item (list, symbol, or integer) from the input
-usObj* read( stringstream& input ) {
-
-    ws( input );
-    int nextChar = input.peek();
-    switch( nextChar ) {
-    case '(': {
-      // cons
-      input.ignore(); // eat the (
-      usObj* first = read( input );
-      usObj* second = readSequence( input );
-      ws( input );
-      int next = input.peek();
-      if( next == ')' ) {
-        input.ignore();
-      }
-      else {
-        // we've got a problem; unclosed list
-      }
-      return new usCons( first, second );
-    }
-      break;
-    case ')':
-      return NULL;
-      break;
-    case '0': case '1': case '2': case '3': case '4':
-    case '5': case '6': case '7': case '8': case '9':
-      // number
-      int i;
-      input >> i;
-      return new usInteger( i );
-      break;
-    default:
-      // symbol.  a symbol ends with a whitespace or ')'
-      return readSymbol( input );
-      break;
-    }
-
-    return NULL;
-}
-
-// ----------------------------------------------------------------------
-
-usObj* read( istream& is ) {
-  stringbuf sb;
-  is.get( sb );
-  stringstream instream( sb.str() );
-  return read( instream );
-}
+usSymbol* readSymbol( istream& input );
+usObj* readSequence( istream& input );
 
 #endif

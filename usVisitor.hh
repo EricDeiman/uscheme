@@ -13,6 +13,7 @@ public:
   virtual void visit( usCons* ) = 0;
   virtual void visit( usSymbol* ) = 0;
   virtual void visit( usInteger* ) = 0;
+  virtual void visit( usNil* ) = 0;
 };
 
 // ----------------------------------------------------------------------
@@ -21,16 +22,19 @@ class usPrintVisitor : public usVisitor {
 public:
   usPrintVisitor( ostream& dest ) : os( dest ) {}
 
-  void visit( usCons* cons ) {
-    os << cons->prn();
+  void visit( usCons* ) {
   }
 
   void visit( usSymbol* sym ) {
-    os << sym->prn();
+    os << sym->getName();
   }
 
   void visit( usInteger* i ) {
-    os << i->prn();
+    os << i->getValue();
+  }
+
+  void visit( usNil* ) {
+    
   }
 
 protected:
@@ -57,6 +61,10 @@ public:
 
   void visit( usInteger* ) {
 
+  }
+
+  void visit( usNil* ) {
+    
   }
 
 protected:
