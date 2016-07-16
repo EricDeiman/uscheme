@@ -22,19 +22,24 @@ class usPrintVisitor : public usVisitor {
 public:
   usPrintVisitor( ostream& dest ) : os( dest ) {}
 
-  void visit( usCons* ) {
+  void visit( usCons* cons ) {
+    os << "(";
+    cons->car()->accept( this );
+    os << " ";
+    cons->cdr()->accept( this );
+    os << " ) : cons";
   }
 
   void visit( usSymbol* sym ) {
-    os << sym->getName();
+    os << sym->getName() << " : sym";
   }
 
   void visit( usInteger* i ) {
-    os << i->getValue();
+    os << i->getValue() << " : int";
   }
 
   void visit( usNil* ) {
-    
+    os << "() : nil";
   }
 
 protected:

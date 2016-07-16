@@ -23,18 +23,14 @@ usSymbol* readSymbol( istream& input ) {
 
 // ----------------------------------------------------------------------
 
-usObj* readSequence( istream& input ) {
+usObj* readSequence( stringstream& input ) {
   // read the list inside parens
   ws( input );
+
   while( input && input.peek() != ')' ) {
     usObj* first = read( input );
     usObj* second = readSequence( input );
-    if( second ) {
-      return new usCons( first, second );
-    }
-    else {
-      return first;
-    }
+    return new usCons( first, second );
   }
   return nil;
 }
@@ -59,6 +55,8 @@ usObj* read( stringstream& input ) {
     }
     else {
       // we've got a problem; unclosed list
+      clog << "Huston, we have a problem";
+      clog << "the next character is " << next << endl;
     }
     return new usCons( first, second );
   }

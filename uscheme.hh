@@ -43,10 +43,6 @@ public:
 
   void accept( usVisitor* v );
 
-  bool isCons() {
-    return true;
-  }
-
 protected:
   usObj* head, *tail;
 };
@@ -88,14 +84,6 @@ protected:
 class usNil : public usObj {
 public:
   void accept( usVisitor* v );
-
-  bool isCons() {
-    return true;
-  }
-
-  bool isNil() {
-    return true;
-  }
 };
 
 extern usNil* nil;
@@ -105,6 +93,7 @@ extern usNil* nil;
 void init();
 
 usObj* read( istream& );
+usObj* read( stringstream& );
 usSymbol* readSymbol( istream& input );
 usObj* readSequence( istream& input );
 
