@@ -19,12 +19,6 @@ public:
   virtual void accept( usVisitor* ) = 0;
   short gcMark;
   friend class usVisitor;
-  bool isCons() {
-    return false;
-  }
-  bool isNil() {
-    return false;
-  }
 };
 
 // ----------------------------------------------------------------------

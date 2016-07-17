@@ -2,6 +2,7 @@
 #define USVISITOR_HH
 
 #include <iostream>
+#include <stack>
 
 #include "uscheme.hh"
 
@@ -20,30 +21,67 @@ public:
 
 class usPrintVisitor : public usVisitor {
 public:
-  usPrintVisitor( ostream& dest ) : os( dest ) {}
+  usPrintVisitor( ostream& dest, bool addTypes = false ) : os( dest ),
+                                                           types( addTypes ) {
+    addParens.push( true );
+  }
 
   void visit( usCons* cons ) {
-    os << "(";
-    cons->car()->accept( this );
-    os << " ";
-    cons->cdr()->accept( this );
-    os << " ) : cons";
+    if( addParens.top() ) {
+      os << "(";
+    }
+
+    if( !addParens.top() ) {
+      addParens.push( true );
+      cons->car()->accept( this );
+      addParens.pop();
+    }
+    else {
+      cons->car()->accept( this );
+    }
+
+    auto cdr = cons->cdr();
+    if( cdr != nil ) {
+      os << " ";
+      addParens.push( false );
+      cdr->accept( this );
+      addParens.pop();
+    }
+
+    if( addParens.top() ) {
+      os << ")";
+    }
+
+    if( types ) {
+      os << " : cons";
+    }
   }
 
   void visit( usSymbol* sym ) {
-    os << sym->getName() << " : sym";
+    os << sym->getName();
+    if( types ) {
+      os << " : sym";
+    }
   }
 
   void visit( usInteger* i ) {
-    os << i->getValue() << " : int";
+    os << i->getValue();
+    if( types ) {
+      os << " : int";
+    }
   }
 
   void visit( usNil* ) {
-    os << "() : nil";
+    os << "()";
+    if( types ) {
+      os << " : nil";
+    }
   }
 
 protected:
   ostream& os;
+  bool types;
+  stack< bool > addParens;
 };
 
 // ----------------------------------------------------------------------
@@ -69,7 +107,7 @@ public:
   }
 
   void visit( usNil* ) {
-    
+
   }
 
 protected:
