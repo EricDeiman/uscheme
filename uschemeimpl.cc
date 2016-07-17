@@ -1,15 +1,15 @@
 #include "uscheme.hh"
 #include "usVisitor.hh"
 
-usObj* nil;
+usObjPtr nil;
 
 // ======================================================================
 
 void init() {
-  nil = new usNil();
+  nil = make_shared< usNil >();
 }
 
-usSymbol* readSymbol( istream& input ) {
+usSymbolPtr readSymbol( istream& input ) {
   // A symbol ends at a white-space, ')', or '.'
   string symbol;
 
@@ -18,19 +18,19 @@ usSymbol* readSymbol( istream& input ) {
     symbol.append( 1, input.get() );
   }
 
-  return new usSymbol( symbol );
-}
+  return make_shared< usSymbol >( symbol );
+} 
 
 // ----------------------------------------------------------------------
 
-usObj* readSequence( stringstream& input ) {
+usObjPtr readSequence( stringstream& input ) {
   // read the list inside parens
   ws( input );
 
   while( input && input.peek() != ')' ) {
-    usObj* first = read( input );
-    usObj* second = readSequence( input );
-    return new usCons( first, second );
+    usObjPtr first = read( input );
+    usObjPtr second = readSequence( input );
+    return make_shared< usCons >( first, second );
   }
   return nil;
 }
@@ -38,7 +38,7 @@ usObj* readSequence( stringstream& input ) {
 // ----------------------------------------------------------------------
 
 // Read one item (list, symbol, or integer) from the input
-usObj* read( stringstream& input ) {
+usObjPtr read( stringstream& input ) {
 
   ws( input );
   int nextChar = input.peek();
@@ -46,8 +46,8 @@ usObj* read( stringstream& input ) {
   case '(': {
     // cons
     input.ignore(); // eat the (
-    usObj* first = read( input );
-    usObj* second = readSequence( input );
+    usObjPtr first = read( input );
+    usObjPtr second = readSequence( input );
     ws( input );
     int next = input.peek();
     if( next == ')' ) {
@@ -58,7 +58,7 @@ usObj* read( stringstream& input ) {
       clog << "Huston, we have a problem ";
       clog << "the next character is " << next << endl;
     }
-    return new usCons( first, second );
+    return make_shared< usCons >( first, second );
   }
     break;
   case ')':
@@ -69,7 +69,7 @@ usObj* read( stringstream& input ) {
     // number
     int i;
     input >> i;
-    return new usInteger( i );
+    return make_shared< usInteger >( i );
     break;
   default:
     // symbol.  a symbol ends with a whitespace or ')'
@@ -82,7 +82,7 @@ usObj* read( stringstream& input ) {
 
 // ----------------------------------------------------------------------
 
-usObj* read( istream& is ) {
+usObjPtr read( istream& is ) {
   stringbuf sb;
   is.get( sb );
   is.ignore(); // eat the \n
@@ -92,18 +92,18 @@ usObj* read( istream& is ) {
 
 // ======================================================================
 
-void usCons::accept( usVisitor* v ) {
-  v->visit( this );
+void usCons::accept( usVisitor* v, usObjPtr self ) {
+  v->visit( this, self );
 }
 
-void usSymbol::accept( usVisitor* v ) {
-  v->visit( this );
+void usSymbol::accept( usVisitor* v, usObjPtr self ) {
+  v->visit( this, self );
 }
 
-void usInteger::accept( usVisitor* v ) {
-  v->visit( this );
+void usInteger::accept( usVisitor* v, usObjPtr self ) {
+  v->visit( this, self );
 }
 
-void usNil::accept( usVisitor* v ) {
-  v->visit( this );
+void usNil::accept( usVisitor* v, usObjPtr self ) {
+  v->visit( this, self );
 }

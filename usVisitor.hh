@@ -11,10 +11,10 @@
 
 class usVisitor {
 public:
-  virtual void visit( usCons* ) = 0;
-  virtual void visit( usSymbol* ) = 0;
-  virtual void visit( usInteger* ) = 0;
-  virtual void visit( usNil* ) = 0;
+  virtual void visit( usCons*, usObjPtr ) = 0;
+  virtual void visit( usSymbol*, usObjPtr ) = 0;
+  virtual void visit( usInteger*, usObjPtr ) = 0;
+  virtual void visit( usNil*, usObjPtr ) = 0;
 };
 
 // ----------------------------------------------------------------------
@@ -26,25 +26,25 @@ public:
     addParens.push( true );
   }
 
-  void visit( usCons* cons ) {
+  void visit( usCons* cons, usObjPtr ) {
     if( addParens.top() ) {
       os << "(";
     }
 
     if( !addParens.top() ) {
       addParens.push( true );
-      cons->car()->accept( this );
+      cons->car()->accept( this, cons->car() );
       addParens.pop();
     }
     else {
-      cons->car()->accept( this );
+      cons->car()->accept( this, cons->car() );
     }
 
     auto cdr = cons->cdr();
     if( cdr != nil ) {
       os << " ";
       addParens.push( false );
-      cdr->accept( this );
+      cdr->accept( this, cdr );
       addParens.pop();
     }
 
@@ -57,21 +57,21 @@ public:
     }
   }
 
-  void visit( usSymbol* sym ) {
+  void visit( usSymbol* sym, usObjPtr ) {
     os << sym->getName();
     if( types ) {
       os << " : sym";
     }
   }
 
-  void visit( usInteger* i ) {
+  void visit( usInteger* i, usObjPtr ) {
     os << i->getValue();
     if( types ) {
       os << " : int";
     }
   }
 
-  void visit( usNil* ) {
+  void visit( usNil*, usObjPtr ) {
     os << "()";
     if( types ) {
       os << " : nil";
@@ -94,22 +94,23 @@ public:
   /*
    * Evaluating a cons cell means calling a function.
    */
-  void visit( usCons* c ) {
-    c->car()->accept( this );
+  void visit( usCons* c, usObjPtr ) {
+    c->car()->accept( this, c->car() );
     if( value->isSymbol() ) {
-      usSymbol* sym = static_cast< usSymbol* >( value );
+      usSymbolPtr sym = static_pointer_cast< usSymbolPtr::element_type >( value );
       // For now, the only symbol we handle is 'define'.
       // In the future, an environment lookup will go here, and the value will need
       // to be a closure.
       if( sym->getName() == "define" ) {
         if( c->cdr()->isCons() ) {
-          usCons* next = static_cast< usCons* >( c->cdr() );
+          usConsPtr next = static_pointer_cast< usConsPtr::element_type >( c->cdr() );
           if( next->car()->isSymbol() ) {
-            usSymbol* nameSymbol = static_cast< usSymbol* >( next->car() );
+            usSymbolPtr nameSymbol = static_pointer_cast<
+              usSymbolPtr::element_type >( next->car() );
             string name = nameSymbol->getName();
             if( next->cdr()->isCons() ) {
-              next = static_cast< usCons* >( next->cdr() );
-              next->car()->accept( this );
+              next = static_pointer_cast< usConsPtr::element_type >( next->cdr() );
+              next->car()->accept( this, next->car() );
               theEnv[ name ] = shared_ptr< usObj >( value );
             }
             else {
@@ -138,23 +139,23 @@ public:
     value = nil;
   }
 
-  void visit( usSymbol* k ) {
+  void visit( usSymbol* k, usObjPtr self ) {
     if( theEnv.count( k->getName() ) ) {
-      value = theEnv[ k->getName() ].get();
+      value = theEnv[ k->getName() ];
     }
     else {
-      value = k;
+      value = self;
     }
   }
 
-  void visit( usInteger* i ) {
-    value = i;
+  void visit( usInteger*, usObjPtr self ) {
+    value = self;
   }
 
-  void visit( usNil* ) {
+  void visit( usNil*, usObjPtr ) {
   }
 
-  usObj* value;
+  usObjPtr value;
 
 protected:
   environment& theEnv;

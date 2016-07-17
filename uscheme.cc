@@ -2,16 +2,15 @@
 #include "usVisitor.hh"
 #include "environment.hh"
 
-usObj* eval( usObj* input, environment& theEnv ) {
+usObjPtr eval( usObjPtr input, environment& theEnv ) {
   usEvalVisitor evaluator( theEnv );
-  input->accept( &evaluator );
-  // delete input  // is this safe?
+  input->accept( &evaluator, input );
   return evaluator.value;
 }
 
-void print( ostream& os, usObj* input ) {
+void print( ostream& os, usObjPtr input ) {
   usPrintVisitor printer( os );
-  input->accept( &printer );
+  input->accept( &printer, input );
 }
 
 void repl( ) {
