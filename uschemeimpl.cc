@@ -1,7 +1,7 @@
 #include "uscheme.hh"
 #include "usVisitor.hh"
 
-usNil* nil;
+usObj* nil;
 
 // ======================================================================
 
@@ -55,7 +55,7 @@ usObj* read( stringstream& input ) {
     }
     else {
       // we've got a problem; unclosed list
-      clog << "Huston, we have a problem";
+      clog << "Huston, we have a problem ";
       clog << "the next character is " << next << endl;
     }
     return new usCons( first, second );

@@ -17,15 +17,25 @@ class usObj {
 public:
   virtual ~usObj() {}
   virtual void accept( usVisitor* ) = 0;
+  virtual bool isSymbol() { return false; }
+  virtual bool isCons() { return false; }
   short gcMark;
   friend class usVisitor;
 };
+
+extern usObj* nil;
 
 // ----------------------------------------------------------------------
 
 class usCons : public usObj {
 public:
   usCons( usObj* car, usObj* cdr ) : head( car ), tail( cdr ) {}
+  ~usCons() {
+    delete head;
+    if( tail != nil ) {
+      delete tail;
+    }
+  }
 
   usObj* car() {
     return head;
@@ -36,6 +46,10 @@ public:
   }
 
   void accept( usVisitor* v );
+
+  bool isCons() {
+    return true;
+  }
 
 protected:
   usObj* head, *tail;
@@ -51,6 +65,10 @@ public:
 
   string getName() {
     return name;
+  }
+
+  bool isSymbol() {
+    return true;
   }
 
 protected:
@@ -79,8 +97,6 @@ class usNil : public usObj {
 public:
   void accept( usVisitor* v );
 };
-
-extern usNil* nil;
 
 // ======================================================================
 
