@@ -92,18 +92,100 @@ usObjPtr read( istream& is ) {
 
 // ======================================================================
 
+usObjPtr usCons::car() {
+  return head;
+}
+
+usObjPtr usCons::cdr() {
+  return tail;
+}
+
+usCons::usType usCons::getType() {
+  return tUsCons;
+}
+
 void usCons::accept( usVisitor* v, usObjPtr self ) {
   v->visit( this, self );
+}
+
+// ----------------------------------------------------------------------
+
+usSymbol::usType usSymbol::getType() {
+  return tUsSymbol;
+}
+
+string usSymbol::getName() {
+  return name;
 }
 
 void usSymbol::accept( usVisitor* v, usObjPtr self ) {
   v->visit( this, self );
 }
 
+// ----------------------------------------------------------------------
+
+usInteger::usType usInteger::getType() {
+  return tUsInteger;
+}
+
+int usInteger::getValue() {
+  return value;
+}
+
 void usInteger::accept( usVisitor* v, usObjPtr self ) {
   v->visit( this, self );
 }
 
+// ----------------------------------------------------------------------
+
+usNil::usType usNil::getType() {
+  return tUsCons;
+}
+
 void usNil::accept( usVisitor* v, usObjPtr self ) {
+  v->visit( this, self );
+}
+
+// ----------------------------------------------------------------------
+
+usClosure::usType usClosure::getType() {
+  return tUsClosure;
+}
+
+usObjPtr usClosure::apply( usConsPtr, usVisitor* ) {
+  return nil;
+}
+
+void usClosure::accept( usVisitor* v, usObjPtr self ) {
+  v->visit( this, self );
+}
+
+// ----------------------------------------------------------------------
+
+usObjPtr usDefine::apply( usConsPtr args, usVisitor* v ) {
+  usEvalVisitor* ev = static_cast< usEvalVisitor* >( v ); 
+  // A special form doesn't have to evaluate its arguments.
+
+  // define is looking for a symbol followed by an expression in the args
+  if( args->car()->getType() == args->car()->tUsSymbol ) {
+    usSymbolPtr sym = static_pointer_cast< usSymbolPtr::element_type >( args->car() );
+    if( args->cdr() != nil &&
+        args->cdr()->getType() == args->cdr()->tUsCons ) {
+      usConsPtr cons = static_pointer_cast< usConsPtr::element_type >( args->cdr() );
+      cons->car()->accept(ev, cons->car() );
+      ( *myEnv.getParent() )[ sym->getName() ] = ev->value;
+    }
+    else {
+      clog << "attempting to define a symbol to nothing";
+    }
+  }
+  else {
+    clog << "attempting to define a non-symbol";
+  }
+
+  return nil;
+}
+
+void usDefine::accept( usVisitor* v, usObjPtr self ) {
   v->visit( this, self );
 }
