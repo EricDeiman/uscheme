@@ -103,3 +103,8 @@ void usEvalVisitor::visit(usDefine *, usObjPtr self)  {
   value = self;
 }
 
+// ----------------------------------------------------------------------
+
+void usApplyVisitor::visit(usDefine *, usObjPtr self) {
+  
+}

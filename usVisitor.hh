@@ -52,4 +52,54 @@ protected:
   environment< usObjPtr >& theEnv;
 };
 
+// ----------------------------------------------------------------------
+
+class notImplementedException : public exception {
+public:
+  notImplementedException( string m ) : message( m ) {}
+
+  virtual const char* what() const throw() {
+    string msg = "Not implemented ";
+    msg.assign( message );
+    return msg.c_str();
+  }
+
+protected:
+  string message;
+};
+
+class usApplyVisitor : public usVisitor {
+public:
+
+  void visit( usCons* , usObjPtr ) {
+    auto ex = notImplementedException("apply cons");
+    throw ex;
+  }
+
+  void visit( usSymbol* , usObjPtr ) {
+    auto ex = notImplementedException("apply symbol");
+    throw ex;
+  }
+
+  void visit( usInteger*, usObjPtr ) {
+    auto ex = notImplementedException("apply integer");
+    throw ex;
+  }
+
+  void visit( usNil*, usObjPtr ) {
+    auto ex = notImplementedException("apply nil");
+    throw ex;
+  }
+
+  void visit( usClosure*, usObjPtr ) {
+    auto ex = notImplementedException("apply closure");
+    throw ex;
+  }
+  
+  void visit( usDefine*, usObjPtr self );
+
+protected:
+
+};
+
 #endif
